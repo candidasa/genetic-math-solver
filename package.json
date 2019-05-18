@@ -1,0 +1,14 @@
+{
+  "name": "genetic-math-solver",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "run": "node geneticSearch.js"
+  },
+  "dependencies": {
+    "gene-lib": "^1.0.2",
+    "lodash": "^4.17.11",
+    "mathjs": "^5.10.3",
+    "random": "^2.1.1"
+  }
+}
