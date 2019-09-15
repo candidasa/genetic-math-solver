@@ -2,6 +2,7 @@ const { Chromosome } = require('gene-lib');
 const math = require('mathjs');
 const _ = require('lodash');
 const random = require('random');
+const bigRat = require("big-rational");
 
 //speed up Chromosome creation by caching these parameters
 let compiledForumla = null;
@@ -9,12 +10,10 @@ let nodeNames = null;
 
 class MathChromosome extends Chromosome {
 
-    constructor(scope, forumla, nodeNames, range, precision) {
+    constructor(scope, forumla, nodeNames, config) {
         super();
         this.forumla = forumla;
-        this.range = range;
-        this.nodeNames = nodeNames;
-        this.precision = precision;
+        this.config = config;
         this.answer = null;
 
         //set scope from mutation or crossover, or roll new scope randomly
@@ -28,12 +27,12 @@ class MathChromosome extends Chromosome {
 
     static create(...args) {
         if (!compiledForumla) {
-            let node = math.parse(args[0]); //parse the maths forumla
+            let node = math.parse(args[0].forumla); //parse the maths forumla
             nodeNames = node.filter(n => n.isSymbolNode).map(n => n.name);  //find the free variables' names
             compiledForumla = node.compile();   //compile the forumla into JS code and cache the result
         }
 
-        return new MathChromosome(null, compiledForumla, nodeNames, args[1], args[2]);
+        return new MathChromosome(null, compiledForumla, nodeNames, args[0]);
     }
 
     /*
@@ -44,15 +43,31 @@ class MathChromosome extends Chromosome {
 
         if (answer === 0) {
             return Number.MAX_SAFE_INTEGER; //perfect answer
-        } else if (_.isUndefined(answer) || _.isNaN(answer)) {
+        } else if (answer > Number.MAX_SAFE_INTEGER || _.isUndefined(answer) || _.isNaN(answer)) {
             return 0;   //lowest score for divide by zero type answers
         } else {
             return 1 / math.abs(answer); //this results in a higher score the closer we get to zero
         }
     }
 
+    rationalize(rational, epsilon) {
+        let denominator = 0;
+        let numerator;
+        let error;
+
+        do {
+            denominator++;
+            numerator = Math.round((rational.numerator * denominator) / rational.denominator);
+            error = Math.abs(rational.minus(numerator / denominator));
+        } while (error > epsilon);
+        return bigRat(numerator, denominator);
+    }
+
     calculateAnswer(fullwide = false) {
         if (!this.answer) { //cache the answer
+            // this.scope = _.mapValues(this.scope, v => {
+            //     return this.rationalize(bigRat(v), 0.01).toDecimal()
+            // });
             this.answer = this.forumla.eval(this.scope);
         }
 
@@ -64,7 +79,17 @@ class MathChromosome extends Chromosome {
     }
 
     generateRandomValue() {
-        return math.round(random.float(...this.range), this.precision);  //round to X decimal points
+        let val = null;
+        if (random.float(0, 1) >= this.config.floatRatio) { //generate floats some % of the time, so we have those in the population for simple solutions
+            //don't allow value of 0
+            while (!val) {
+                val = random.integer(...this.config.range);
+            }
+        } else {
+            val = math.round(random.float(...this.config.range), this.config.precision);  //round to X decimal points
+        }
+
+        return val;
     }
 
     // Return an array of children based on some crossover with other.
@@ -77,7 +102,7 @@ class MathChromosome extends Chromosome {
                 newScope[key] = random.boolean() ? value : other.scope[key];
             });
 
-            return new MathChromosome(newScope, this.forumla, this.nodeNames, this.range, this.precision);
+            return new MathChromosome(newScope, this.forumla, this.nodeNames, this.config);
         });
     }
 
@@ -97,7 +122,7 @@ class MathChromosome extends Chromosome {
         });
 
         if (mutated) {
-            return new MathChromosome(newScope, this.forumla, this.nodeNames, this.range, this.precision);
+            return new MathChromosome(newScope, this.forumla, this.nodeNames, this.config);
         } else {
             return this;    //no need to create a new object if no mutation occurred
         }

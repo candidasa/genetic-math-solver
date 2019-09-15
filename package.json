@@ -6,6 +6,7 @@
     "run": "node geneticSearch.js"
   },
   "dependencies": {
+    "big-rational": "^0.10.9",
     "gene-lib": "^1.0.2",
     "lodash": "^4.17.11",
     "mathjs": "^5.10.3",
