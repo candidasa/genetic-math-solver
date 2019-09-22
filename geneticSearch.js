@@ -4,7 +4,7 @@ const _ = require('lodash');
 const commandLine = require('command-line-args');
 
 let options = commandLine([
-    { name: 'forumla', alias: 'f', type: String, defaultOption: true },
+    { name: 'formula', alias: 'f', type: String, defaultOption: true },
     { name: 'minRange', type: Number, defaultValue: -50 },
     { name: 'maxRange', type: Number, defaultValue: 50 },
     { name: 'decimalPoints', alias: 'd', type: Number, defaultValue: 2 },
@@ -16,9 +16,9 @@ let options = commandLine([
 ]);
 options.range = [options.minRange, options.maxRange];
 
-    //forumla: "2.4*a^3+5*b-0.4*c/d+a^0.2*e",
-    //forumla: "6b - 3a + 3c - 12d",
-    //forumla: "6a^0.75 - 3b + 3c - 12d - 25e + 7.5",
+    //forumla: "2.4*a^3+5*b-0.4*c/d+a^0.2*e = 0",
+    //forumla: "6b - 3a + 3c - 12d = 0",
+    //forumla: "6a^0.75 - 3b + 3c - 12d - 25e + 7.5 = 0",
 
 const elapsedTime = Date.now();
 let bestChromosome = null;
