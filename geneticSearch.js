@@ -29,8 +29,9 @@ geneLib.run({
     createArgs: [options],
     crossoverRate: options.crossoverRate,
     mutationRate: options.mutationRate,
-    solutionFitness: Number.MAX_SAFE_INTEGER,
+    solutionFitness: Number.MAX_SAFE_INTEGER,   //stop if we reach this fitness
     onGeneration: state => {
+        //monitor GA progress
         if (state.generationCount && state.generationCount % 100 === 0) {
             console.log(`Generation #${state.generationCount}`)
         }

@@ -31,6 +31,7 @@ class MathChromosome extends Chromosome {
         if (!compiledFormula) {
             let inputFormula = args[0].formula.split("=")[0].trim();   //split the equals amount out
             equalsAmount = args[0].formula.split("=")[1].trim();    //get the amount this should be equals to
+
             let node = math.parse(inputFormula); //parse the maths formula
             nodeNames = node.filter(n => n.isSymbolNode).map(n => n.name);  //find the free variables' names
             compiledFormula = node.compile();   //compile the formula into JS code and cache the result
@@ -59,7 +60,7 @@ class MathChromosome extends Chromosome {
 
     calculateAnswer(fullwide = false) {
         if (!this.answer) { //cache the answer
-            this.answer = this.formula.eval(this.scope);
+            this.answer = this.formula.eval(this.scope);    //use the object's scope to calculate the answer
         }
 
         if (fullwide) {
@@ -71,7 +72,9 @@ class MathChromosome extends Chromosome {
 
     generateRandomValue() {
         let val = null;
-        if (random.float(0, 1) >= this.config.floatRatio) { //generate floats some % of the time, so we have those in the population for simple solutions
+
+        //generate floats some % of the time, so we have those in the population for simple solutions
+        if (random.float(0, 1) >= this.config.floatRatio) {
             //don't allow value of 0
             while (!val) {
                 val = random.integer(...this.config.range);
@@ -103,9 +106,9 @@ class MathChromosome extends Chromosome {
         let newScope = {};
 
         _.forEach(this.scope, (value, key) => {
-            if (random.float(0,1) <= rate) { //e.g, a rate of 0.05 occurs 5% of the time
+            if (random.float(0,1) <= rate) { //e.g, a rate of 0.15 occurs 15% of the time
                 newScope[key] = this.generateRandomValue();
-                mutated = true;
+                mutated = true; //we only need to return a new Chromosome if a mutation has occurred; this improves performance
 
             } else {
                 newScope[key] = value;  //set old value
