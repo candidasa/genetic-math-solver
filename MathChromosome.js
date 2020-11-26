@@ -76,7 +76,7 @@ class MathChromosome extends Chromosome {
         //generate floats some % of the time, so we have those in the population for simple solutions
         if (random.float(0, 1) >= this.config.floatRatio) {
             //don't allow value of 0
-            while (!val) {
+            while (!val || val === 1) {
                 val = random.integer(...this.config.range);
             }
         } else {

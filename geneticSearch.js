@@ -9,8 +9,8 @@ let options = commandLine([
     { name: 'maxRange', type: Number, defaultValue: 50 },
     { name: 'decimalPoints', alias: 'd', type: Number, defaultValue: 2 },
     { name: 'floatRatio', alias: 'r', type: Number, defaultValue: 0.5 },
-    { name: 'generationSize', alias: 'g', type: Number, defaultValue: 5000 },
-    { name: 'generationLimit', alias: 'l', type: Number, defaultValue: 200 },
+    { name: 'generationSize', alias: 'g', type: Number, defaultValue: 6000 },
+    { name: 'generationLimit', alias: 'l', type: Number, defaultValue: 2000 },
     { name: 'crossoverRate', alias: 'c', type: Number, defaultValue: 0.2 },
     { name: 'mutationRate', alias: 'm', type: Number, defaultValue: 0.15 }
 ]);
@@ -22,6 +22,7 @@ options.range = [options.minRange, options.maxRange];
 
 const elapsedTime = Date.now();
 let bestChromosome = null;
+let result = null;
 geneLib.run({
     chromosomeClass: MathChromosome,
     generationSize: options.generationSize,
@@ -31,6 +32,8 @@ geneLib.run({
     mutationRate: options.mutationRate,
     solutionFitness: Number.MAX_SAFE_INTEGER,   //stop if we reach this fitness
     onGeneration: state => {
+        result = state; //save the state as the result for display in the finally
+
         //monitor GA progress
         if (state.generationCount && state.generationCount % 100 === 0) {
             console.log(`Generation #${state.generationCount}`)
@@ -41,8 +44,12 @@ geneLib.run({
             bestChromosome.fitness = state.best.fitness;    //cache the fitness
             console.log(`New best fitness from generation #${state.generationCount}. Answer: ${bestChromosome.calculateAnswer(true)}`)
         }
+
+        if (state.best.fitness === Number.MAX_SAFE_INTEGER) {
+            throw new Error("Best answer found");
+        }
     }
-}).then((result) => {
+}).then(() => {}).catch(() => {}).finally(() => {
     console.log(`\nElapsed generations: ${result.generationCount}`);
     console.log(`Combinations checked: ${(result.generationCount * result.individuals.length).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }`);
     console.log(`Elapsed time: ${(Date.now() - elapsedTime) / 1000} seconds`);
